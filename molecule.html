@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script type="text/javascript" src="https://getfirebug.com/firebug-lite-debug.js"></script>
+<meta name="description" content="Created: 19 Dec 23 by Dmitrii Kosintsev" />
+  	<meta charset="utf-8" />
+	<title>Sample Three.js</title>
+	<style>
+		#container {
+			background: #000000;
+			width: 100%;
+			height: 100%;
+		}
+  </style>
+<meta charset=utf-8 />
+<title>CS4406 Computer Graphics - Programming Assignment Unit 5</title>
+  
+<style id="jsbin-css">
+
+</style>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.153/build/three.module.js", 
+        "three/addons/": "https://unpkg.com/three@0.153/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+<div id="container">
+</div>
+</body>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script> 
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.158.0/three.js"></script>
+  <script src="https://cdn.rawgit.com/mrdoob/three.js/master/examples/js/controls/OrbitControls.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.1.0/math.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/Detect.js/2.2.2/detect.js"></script>
+	<script type="module">
+    import * as THREE from "three";
+    
+  	// set the scene size
+  	var WIDTH = 500, HEIGHT = 500;
+  
+  	// set some camera attributes
+  	var VIEW_ANGLE = 45, ASPECT = WIDTH / HEIGHT, NEAR = 1, FAR = 1000;
+  
+  	// get the DOM element to attach to
+  	var $container = $('#container');
+  
+  	// create a WebGL renderer, camera, and a scene
+    var renderer = new THREE.WebGLRenderer();
+  	var scene = new THREE.Scene();
+  	var clock = new THREE.Clock();
+  	var camera = new THREE.PerspectiveCamera(VIEW_ANGLE,ASPECT,NEAR,FAR);
+  	 // Setting camera position
+  	camera.position.set(0,30,250);    	
+  	// add the camera to the scene
+  	scene.add(camera)
+        
+  	// start the renderer
+  	renderer.setSize(WIDTH, HEIGHT);
+  
+  	// attach the render-supplied DOM element
+  	$container.append(renderer.domElement);
+  
+  	// ----------------------------------------------------------------------------------------
+  	//  END OF THE STANDARD CODE FOR THE ASSIGNMENT
+  	//  Following this is where you must place your own custom code to complete the assignment
+  	// ----------------------------------------------------------------------------------------
+
+    // Adding an event listener to rotate the camera using keys
+    document.body.addEventListener('keydown', keyPressed);
+
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    // Adding light to the scene
+    var light = new THREE.PointLight(0xffffff, 3);
+    light.position.set(60, 250, 200);
+    light.castShadow = true;
+    
+    // Setting shadow properties
+    light.shadow.mapSize.width = 3000; // Shadow quality
+    light.shadow.mapSize.height = 3000; // Shadow quality
+    light.shadow.camera.near = 0.5; // Shadow near plane
+    light.shadow.camera.far = 550; // Shadow far plane
+    scene.add(light);
+
+    // Adding geometry for the parts of the shape
+    var gMainSphere = new THREE.SphereGeometry(25, 30, 30);
+    var gBlueSphere = new THREE.SphereGeometry(12, 30, 30);
+    var gTubes = new THREE.CylinderGeometry( 3, 3, 20, 32 );
+
+    // Adding materials for the parts of the shape
+    var mMainSphere = new THREE.MeshStandardMaterial( {color: 0xd84b59} );
+    var mBlueSphere = new THREE.MeshStandardMaterial( {color: 0x486e9e} );
+    var mTubes = new THREE.MeshStandardMaterial( {color: 0xf6e8e0} );
+
+    // Adding the geometry and materials together
+    // blueSphereTop will be put on top of a tube
+    // blueSphereBottom will be put on the bottom of a tube
+    // This way, it will be easier to manipulate them
+    var mainSphere = new THREE.Mesh(gMainSphere, mMainSphere);
+    var tubeTop = new THREE.Mesh(gTubes, mTubes);
+    var tubeBottom = new THREE.Mesh(gTubes, mTubes);
+    var blueSphereTop = new THREE.Mesh(gBlueSphere, mBlueSphere);
+    var blueSphereBottom = new THREE.Mesh(gBlueSphere, mBlueSphere);
+    blueSphereTop.position.y = 21;
+    blueSphereBottom.position.y = -21;
+
+    // Enabling shadows for the objects
+    mainSphere.castShadow = true;
+    tubeTop.castShadow = true;
+    tubeBottom.castShadow = true;
+    blueSphereTop.castShadow = true;
+    blueSphereBottom.castShadow = true;
+
+    // Putting one atom and one bond in a group for easier manipulation
+    var bond1 = new THREE.Group();
+    bond1.add(tubeTop, blueSphereTop);
+    var bond2 = new THREE.Group();
+    bond2.add(tubeBottom, blueSphereBottom);
+    // Cloning bond 2 to get identical groups
+    var bond3 = bond2.clone();
+    var bond4 = bond2.clone();
+
+    // Positioning the bonds around the main atom
+    // The coordinates are derived from the properties of a tetrahedron
+    // For more inforamtion, check this link: https://mathworld.wolfram.com/RegularTetrahedron.html
+    bond1.position.set(0, Math.sqrt(2)/Math.sqrt(3) * 41.5, 0);
+    bond2.position.set(27.5, -1/Math.sqrt(2) * 28, 0);
+    bond3.position.set(-27.5/2, -1/Math.sqrt(2) * 27.5, Math.sqrt(3)/2 * 27.5);
+    bond4.position.set(-27.5/2, -1/Math.sqrt(2) * 27.5, -Math.sqrt(3)/2 * 27.5);
+
+    // Orienting the bonds 2, 3, and 4 towards the center of the red sphere
+    var direction = new THREE.Vector3();
+    // Getting the center of the red sphere
+    mainSphere.getWorldPosition(direction); 
+    // Normalizing the vector
+    direction.sub(bond2.position).normalize();
+    // Directing the bond towards the center
+    bond2.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction);
+    // Repeating steps from above
+    direction.sub(bond3.position).normalize();
+    bond3.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction);
+    direction.sub(bond4.position).normalize();
+    bond4.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction);
+
+    // Putting the atom together as one group
+    // This separates it from the plane and allows for easier manipulation
+    var molecule = new THREE.Group();
+    molecule.add(mainSphere, bond1, bond2, bond3, bond4);
+
+    // Adding a green plane to the scene
+    const gPlane = new THREE.PlaneGeometry(300, 300);
+    // Neon green - 0x0fff50, other - 0x00a86b
+    const mPlane = new THREE.MeshStandardMaterial({color: 0x0fff50, side: THREE.DoubleSide});
+    const plane = new THREE.Mesh(gPlane, mPlane);
+    plane.position.set(0, -60, 0);
+    plane.rotation.x = Math.PI / 2;
+    plane.receiveShadow = true;
+    
+    // Adding objects to the scene     
+    scene.add(plane);                
+    scene.add(molecule);
+
+    // Moving the atom
+    // Defining the necessary variables
+    let isDragging = false;
+    let previousMousePosition = {
+        x: 0,
+        y: 0
+    };
+
+    // Variables to convert between angles and radians
+    const toRadians = (angle) => {
+        return angle * (Math.PI / 180);
+    };
+
+    const toDegrees = (angle) => {
+        return angle * (180 / Math.PI);
+    };
+
+    const renderArea = renderer.domElement;
+
+    // Change the value of boolean once the button is pressed
+    renderArea.addEventListener('mousedown', (e) => {
+        isDragging = true;
+    });
+
+    // Rotate the molecule around with the movements of the mouse if the mouse is down
+    renderArea.addEventListener('mousemove', (e) => {
+        let deltaMove = {
+            x: e.offsetX-previousMousePosition.x,
+            y: e.offsetY-previousMousePosition.y
+        };
+
+        if (isDragging) {
+
+            let deltaRotationQuaternion = new THREE.Quaternion().
+
+            setFromEuler(
+                new THREE.Euler(toRadians(deltaMove.y * 1), toRadians(deltaMove.x * 1), 0, 'XYZ')
+            );
+
+            molecule.quaternion.multiplyQuaternions(deltaRotationQuaternion, molecule.quaternion);
+        }
+
+        previousMousePosition = {
+            x: e.offsetX,
+            y: e.offsetY
+        };
+    });
+
+    // When the mouse is up, stop the rotation
+    document.addEventListener('mouseup', (e) => {
+        isDragging = false;
+    });
+
+    
+  	// Standard functions for rendering the scene.  Notice how we have the animate function 
+  	// which submits a call to requestAnimationFrame to call animate.   This creates a loop
+  	// that will render the scene again whenever something within the scene changes.
+    function animate() {
+  		requestAnimationFrame(animate);
+  		render();
+  	}
+    
+    // Setting keys to control the rotation of camera
+    function keyPressed(e){
+      switch(e.key) {
+        case 'ArrowUp':
+            camera.rotation.x += 0.1;
+            break;
+        case 'ArrowDown':
+            camera.rotation.x -= 0.1
+            break;
+        case 'ArrowLeft':
+            camera.rotation.y += 0.1
+            break;
+        case 'ArrowRight':
+            camera.rotation.y -= 0.1
+            break;
+      }
+      e.preventDefault();
+      render();
+    }
+    
+  	function render() {
+  		//cameraControls.update();
+  		renderer.render(scene, camera);
+  	}
+  	animate();
+	</script>
+</html>

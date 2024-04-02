@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script type="text/javascript" src="https://getfirebug.com/firebug-lite-debug.js"></script>
+<meta name="description" content="Illustrating a graph of a function. Created: 3 Jan 24 by Dmitrii Kosintsev" />
+  	<meta charset="utf-8" />
+	<title>Sample Three.js</title>
+	<style>
+		#container {
+			background: #000000;
+			width: 100%;
+			height: 100%;
+		}
+  </style>
+<meta charset=utf-8 />
+<title>CS4406 Computer Graphics - Programming Assignment Unit 7</title>
+  
+<style id="jsbin-css">
+
+</style>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.153/build/three.module.js", 
+        "three/addons/": "https://unpkg.com/three@0.153/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+<div id="container">
+</div>
+</body>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script> 
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.158.0/three.js"></script>
+  <script src="https://cdn.rawgit.com/mrdoob/three.js/master/examples/js/controls/OrbitControls.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.1.0/math.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/Detect.js/2.2.2/detect.js"></script>
+	<script type="module">
+    import * as THREE from "three";
+    import {OrbitControls} from "three/addons/controls/OrbitControls.js";
+    
+  	// set the scene size
+  	var WIDTH = 500, HEIGHT = 500;
+  
+  	// set some camera attributes
+  	var VIEW_ANGLE = 45, ASPECT = WIDTH / HEIGHT, NEAR = 1, FAR = 1000;
+  
+  	// get the DOM element to attach to
+  	var $container = $('#container');
+  
+  	// create a WebGL renderer, camera, and a scene
+    var renderer = new THREE.WebGLRenderer();
+  	var scene = new THREE.Scene();
+  	var clock = new THREE.Clock();
+  	var camera = new THREE.PerspectiveCamera(VIEW_ANGLE,ASPECT,NEAR,FAR);
+  	 // Setting camera position
+  	camera.position.set(3,3,3);    	
+  	// add the camera to the scene
+  	scene.add(camera)
+
+    // Adding camera controls
+    var cameraControls = new OrbitControls(camera, renderer.domElement);
+    cameraControls.addEventListener('mousenove', renderer);
+    cameraControls.autoRotate = false;
+    
+  	// start the renderer
+  	renderer.setSize(WIDTH, HEIGHT);
+  
+  	// attach the render-supplied DOM element
+  	$container.append(renderer.domElement);
+  
+  	// ----------------------------------------------------------------------------------------
+  	//  END OF THE STANDARD CODE FOR THE ASSIGNMENT
+  	//  Following this is where you must place your own custom code to complete the assignment
+  	// ----------------------------------------------------------------------------------------
+
+    // Adding AxesHelper to the scene
+    const axesHelper = new THREE.AxesHelper(1);
+    scene.add(axesHelper);
+
+    // Adding a grid to the scene
+    const gridHelper = new THREE.GridHelper(7, 7);
+    scene.add(gridHelper);
+
+    // Adding ambient light
+    
+
+    // Creating a function using a custom formula for a hyperbolic paraboloid
+    function customFunction(x, y) {
+      return 4*(y*y/9-x*x/4);
+      // Commnet the return statement above and uncomment the one below to see a cone
+      //return (x*x+y*y)
+    }
+    
+    // Generating vertices and faces
+    const geometry = new THREE.BufferGeometry();
+    const vertices = [];
+    const faces = [];
+
+    // A simple loop to generate vertices
+    for (let x = -1; x <= 1; x += 0.1) {
+      for (let y = -1; y <= 1; y += 0.1) {
+        const z = customFunction(x, y);
+        vertices.push(x, y, z);
+      }
+    }
+
+    // A simple loop to generate faces
+    for (let i = 0; i < 19; i++) {
+      for (let j = 0; j < 19; j++) {
+        const a = i + j * 20;
+        const b = (i + 1) + j * 20;
+        const c = i + (j + 1) * 20;
+        const d = (i + 1) + (j + 1) * 20;
+
+        faces.push(a, b, d);
+        faces.push(a, d, c);
+      }
+    }
+
+    // Setting positions
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    geometry.setIndex(faces);
+
+    // Creating mesh
+    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.DoubleSide, wireframe: true });
+    const mesh = new THREE.Mesh(geometry, material);
+
+    // Adding mesh to scene
+    scene.add(mesh);
+    
+  	// Standard functions for rendering the scene.  Notice how we have the animate function 
+  	// which submits a call to requestAnimationFrame to call animate.   This creates a loop
+  	// that will render the scene again whenever something within the scene changes.
+    function animate() {
+  		requestAnimationFrame(animate);
+  		render();
+  	}
+    
+  	function render() {
+  		renderer.render(scene, camera);
+  	}
+  	animate();
+	</script>
+</html>

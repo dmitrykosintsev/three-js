@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <script type="text/javascript" src="https://getfirebug.com/firebug-lite-debug.js"></script>
+  <meta name="description" content="Bouncing shape. Created: 4 Dec 23 by Dmitrii Kosintsev" />
+  <meta charset="utf-8" />
+  <title>Sample Three.js</title>
+  <style>
+    #container {
+      background: #000000;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+  <meta charset=utf-8 />
+  <title>CS4406 Computer Graphics - Programming assignment Unit 3</title>
+
+  <style id="jsbin-css">
+
+  </style>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.153/build/three.module.js", 
+        "three/addons/": "https://unpkg.com/three@0.153/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+
+<body>
+  <div id="container">
+  </div>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.158.0/three.js"></script>
+<script src="https://cdn.rawgit.com/mrdoob/three.js/master/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.1.0/math.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Detect.js/2.2.2/detect.js"></script>
+<script type="module">
+  import * as THREE from "three";
+  import {OrbitControls} from "three/addons/controls/OrbitControls.js";
+
+  // set the scene size
+  var WIDTH = 500, HEIGHT = 500;
+
+  // set some camera attributes
+  var VIEW_ANGLE = 45, ASPECT = WIDTH / HEIGHT, NEAR = 1, FAR = 1000;
+
+  // get the DOM element to attach to
+  var $container = $('#container');
+
+  // create a WebGL renderer, camera, and a scene
+
+  var renderer = new THREE.WebGLRenderer();
+  var scene = new THREE.Scene();
+  var clock = new THREE.Clock();
+  var camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
+  // the camera starts at 0,0,0 so pull it back
+  camera.position.z = 200;
+  // add the camera to the scene
+  scene.add(camera)
+
+  // set up the camera controls.  Please keep in mind that what this does is move the entire scene around.
+  // because the entire scene is moving the position of the camera and lights in relation to objects within 
+  // the scene doesn't change so the lighting on the surface of the object(s) will not change either
+  var cameraControls = new OrbitControls(camera, renderer.domElement);
+  cameraControls.addEventListener('mousenove', renderer);
+  cameraControls.autoRotate = false;
+
+  // start the renderer
+  renderer.setSize(WIDTH, HEIGHT);
+
+  // attach the render-supplied DOM element
+  $container.append(renderer.domElement);
+
+  // ----------------------------------------------------------------------------------------
+  //  END OF THE STANDARD CODE FOR THE ASSIGNMENT
+  //  Following this is where you must place your own custom code to complete the assignment
+  // ----------------------------------------------------------------------------------------
+
+  //Setting the light and shadows
+  var light = new THREE.PointLight(0xffffaa, 1, 250);
+  light.position.set(-60, 60, 60); //position of the light
+  light.castShadow = true; //allow casting shadows
+  scene.add(light); //add to the scene
+
+  //Setting shadow properties
+  light.shadow.mapSize.width = 500;
+  light.shadow.mapSize.height = 500;
+  light.shadow.camera.near = 1;
+  light.shadow.camera.far = 400;
+
+  //Creating a torus and setting its shadows
+  const geometry = new THREE.TorusKnotGeometry(20, 4, 100, 16); //adding geometry
+  //setting material
+  const material = new THREE.MeshBasicMaterial({color: 0xe54cb1, side: THREE.DoubleSide});
+  //creating mesh
+  const torus = new THREE.Mesh(geometry, material);
+  torus.position.set(0, 0, 10); //setting the initial position
+  torus.castShadow = true; //allow casting shadows
+  torus.receiveShadow = true; //allow receiving shadows
+  scene.add(torus); //add to the scene
+
+  //Creating a plane on the background to reflect the light
+  var planeGeo = new THREE.PlaneGeometry(600, 600, 32, 32); //adding geometry
+  var planeMaterial = new THREE.MeshStandardMaterial({color: 0xffffff}); //setting material
+  var plane = new THREE.Mesh(planeGeo, planeMaterial); //creating mesh
+  plane.castShadow = true; //allow casting shadows
+  plane.receiveShadow = true; //allow receiving shadows
+  scene.add(plane); //add to the scene
+
+  //Booleans to move the torus around
+  var xPos = true;
+  var yPos = true;
+
+  //Function to move the torus around the scene
+  function move() {
+    xPos ? torus.position.x += 1 : torus.position.x -= 1;
+    yPos ? torus.position.y += 1 : torus.position.y -= 1;
+  }
+
+  //Function to check when the torus reaches one of the sides and change its movement
+  function check() {
+    //change the colour and the value of one Boolean when a specific position is reached
+    if (torus.position.x == 75) {
+      xPos = false;
+      torus.material.color.setHex(0xc638ec);
+    }
+
+    if (torus.position.y == 75) {
+      yPos = false;
+      torus.material.color.setHex(0x3884ec);
+
+    }
+
+    if (torus.position.x == -75) {
+      xPos = true;
+      torus.material.color.setHex(0x57cae3);
+
+    }
+
+    if (torus.position.y == -40) {
+      yPos = true;
+      torus.material.color.setHex(0x5ad8b5);
+
+    }
+  }
+
+  //Function to animate the scene
+  function animate() {
+    requestAnimationFrame(animate);
+    move();
+    check();
+    render();
+  }
+
+  //Function to render the scene
+  function render() {
+    cameraControls.update();
+    renderer.render(scene, camera);
+  }
+  animate();
+</script>
+
+</html>

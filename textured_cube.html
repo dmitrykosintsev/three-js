@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script type="text/javascript" src="https://getfirebug.com/firebug-lite-debug.js"></script>
+<meta name="description" content="Rotating cube with different textures. Created: 14 Dec 23 by Dmitrii Kosintsev" />
+  	<meta charset="utf-8" />
+	<title>Sample Three.js</title>
+	<style>
+		#container {
+			background: #000000;
+			width: 100%;
+			height: 100%;
+		}
+  </style>
+<meta charset=utf-8 />
+<title>CS4406 Computer Graphics - Learning Journal Unit 4</title>
+  
+<style id="jsbin-css">
+
+</style>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.153/build/three.module.js", 
+        "three/addons/": "https://unpkg.com/three@0.153/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+<div id="container">
+</div>
+</body>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script> 
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.158.0/three.js"></script>
+  <script src="https://cdn.rawgit.com/mrdoob/three.js/master/examples/js/controls/OrbitControls.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.1.0/math.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/Detect.js/2.2.2/detect.js"></script>
+	<script type="module">
+    import * as THREE from "three";
+    import {OrbitControls} from "three/addons/controls/OrbitControls.js";
+    
+  	// set the scene size
+  	var WIDTH = 500, HEIGHT = 500;
+  
+  	// set some camera attributes
+  	var VIEW_ANGLE = 45, ASPECT = WIDTH / HEIGHT, NEAR = 1, FAR = 1000;
+  
+  	// get the DOM element to attach to
+  	var $container = $('#container');
+  
+  	// create a WebGL renderer, camera, and a scene
+        
+    var renderer = new THREE.WebGLRenderer();
+  	var scene = new THREE.Scene();
+  	var clock = new THREE.Clock();
+  	var camera = new THREE.PerspectiveCamera(VIEW_ANGLE,ASPECT,NEAR,FAR);
+  	 // the camera starts at 0,0,0 so pull it back
+  	camera.position.set(40,0,110);    	
+  	// add the camera to the scene
+  	scene.add(camera)
+     
+  	// set up the camera controls.  Please keep in mind that what this does is move the entire scene around.
+  	// because the entire scene is moving the position of the camera and lights in relation to objects within 
+  	// the scene doesn't change so the lighting on the surface of the object(s) will not change either
+  	var cameraControls = new OrbitControls(camera, renderer.domElement);
+  	cameraControls.addEventListener( 'mousenove', renderer );
+    cameraControls.autoRotate = false;
+        
+  	// start the renderer
+  	renderer.setSize(WIDTH, HEIGHT);
+  
+  	// attach the render-supplied DOM element
+  	$container.append(renderer.domElement);
+  
+  	// ----------------------------------------------------------------------------------------
+  	//  END OF THE STANDARD CODE FOR THE ASSIGNMENT
+  	//  Following this is where you must place your own custom code to complete the assignment
+  	// ----------------------------------------------------------------------------------------
+
+    // Adding an event listener to rotate the cube using keys
+    document.body.addEventListener('keydown', keyPressed);
+    
+    // Enabling shadows
+    renderer.shadowMap.enabled = true;
+    
+    // Adding global light
+    const light_global = new THREE.AmbientLight( 0x404040, 0.4 );
+    scene.add( light_global );
+
+    // Adding directional light
+    var directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight.position.set(0, 0, 120);
+    directionalLight.castShadow = true;
+    directionalLight.shadow.mapSize.width = 100;
+    directionalLight.shadow.mapSize.height = 100;
+    scene.add(directionalLight);
+
+    // Creating textures for each side
+    // Source: https://www.freepik.com/premium-vector/seamless-children-s-pattern-with-pets-cute-vector-illustrationxa_32486686.htm#position=39
+    var texture1 = new THREE.TextureLoader().load('./Cats.jpg');
+    // Source: https://www.freepik.com/free-vector/cute-giraffe-seamless-pattern_32492108.htm#position=42
+    var texture2 = new THREE.TextureLoader().load('./Giraffe.jpg');
+    // Source: https://www.freepik.com/free-vector/hand-drawn-panda-pattern-design_49682358.htm#position=33
+    var texture3 = new THREE.TextureLoader().load('./Panda.jpg');
+    // Source: https://www.freepik.com/free-vector/animals-pattern-design_33813607.htm#position=45
+    var texture4 = new THREE.TextureLoader().load('./SmilyWhite.jpg');
+
+    // Creating material to be used for each side
+    var material1 = new THREE.MeshPhongMaterial( { map: texture1 } );
+    var material2 = new THREE.MeshPhongMaterial( { map: texture2 } );
+    var material3 = new THREE.MeshPhongMaterial( { map: texture3 } );
+    var material4 = new THREE.MeshPhongMaterial( { map: texture4 } );
+    // General colour for the top and bottom
+    var materialGen = new THREE.MeshStandardMaterial( {color: 0xeeeeee } );
+
+    // Creating a cube to display the images on
+    var geometry = new THREE.BoxGeometry( 50, 50, 50 );
+    // Putting all materials into an array to match the faces of the cube in order:
+    //front, back, top, bottom, left, right
+    var materials = [ material1, material2, materialGen, materialGen, material3, material4 ];
+
+    // Putting the geometry and materials together
+    var cube = new THREE.Mesh(geometry, materials);
+    cube.castShadow = true;
+    cube.receiveShadow = true;
+    scene.add(cube);
+      
+  	// Standard functions for rendering the scene.  Notice how we have the animate function 
+  	// which submits a call to requestAnimationFrame to call animate.   This creates a loop
+  	// that will render the scene again whenever something within the scene changes.
+  	var rotationSpeed = 0.01;
+    function animate() {
+  		requestAnimationFrame(animate);
+      cube.rotation.y += rotationSpeed;
+  		render();
+  	}
+
+    // Setting keys to control the rotation with the speed not more than 0.01 in both directions
+    function keyPressed(e){
+      switch(e.key) {
+        case 'ArrowLeft':
+            rotationSpeed < -0.01 ? rotationSpeed = -0.01 : rotationSpeed -= 0.002;
+            break;
+        case 'ArrowRight':
+            rotationSpeed > 0.01 ? rotationSpeed = 0.01 : rotationSpeed += 0.002;
+            break;
+      }
+      e.preventDefault();
+      render();
+    }
+  
+  	function render() {
+  		cameraControls.update();
+  		renderer.render(scene, camera);
+  	}
+  	animate();
+	</script>
+</html>
